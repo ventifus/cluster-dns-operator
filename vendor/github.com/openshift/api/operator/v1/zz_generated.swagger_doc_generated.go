@@ -624,6 +624,14 @@ func (DNSCache) SwaggerDoc() map[string]string {
 	return map_DNSCache
 }
 
+var map_DNSHostRecord = map[string]string{
+	"": "DNSHostRecord is a static hosts entry",
+}
+
+func (DNSHostRecord) SwaggerDoc() map[string]string {
+	return map_DNSHostRecord
+}
+
 var map_DNSList = map[string]string{
 	"":         "DNSList contains a list of DNS\n\nCompatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).",
 	"metadata": "metadata is the standard list's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
@@ -662,6 +670,8 @@ var map_DNSSpec = map[string]string{
 	"operatorLogLevel":  "operatorLogLevel controls the logging level of the DNS Operator. Valid values are: \"Normal\", \"Debug\", \"Trace\". Defaults to \"Normal\". setting operatorLogLevel: Trace will produce extremely verbose logs.",
 	"logLevel":          "logLevel describes the desired logging verbosity for CoreDNS. Any one of the following values may be specified: * Normal logs errors from upstream resolvers. * Debug logs errors, NXDOMAIN responses, and NODATA responses. * Trace logs errors and all responses.\n Setting logLevel: Trace will produce extremely verbose logs.\nValid values are: \"Normal\", \"Debug\", \"Trace\". Defaults to \"Normal\".",
 	"cache":             "cache describes the caching configuration that applies to all server blocks listed in the Corefile. This field allows a cluster admin to optionally configure: * positiveTTL which is a duration for which positive responses should be cached. * negativeTTL which is a duration for which negative responses should be cached. If this is not configured, OpenShift will configure positive and negative caching with a default value that is subject to change. At the time of writing, the default positiveTTL is 900 seconds and the default negativeTTL is 30 seconds or as noted in the respective Corefile for your version of OpenShift.",
+	"hostsPlugin":       "hostsPlugin allows configuring the CoreDNS \"hosts\" plugin",
+	"templatePlugin":    "templatePlugin allows configuring the CoreDNS \"template\" plugin",
 }
 
 func (DNSSpec) SwaggerDoc() map[string]string {
@@ -677,6 +687,14 @@ var map_DNSStatus = map[string]string{
 
 func (DNSStatus) SwaggerDoc() map[string]string {
 	return map_DNSStatus
+}
+
+var map_DNSTemplateExtendedError = map[string]string{
+	"": "DNSTemplateExtendedError is ederror",
+}
+
+func (DNSTemplateExtendedError) SwaggerDoc() map[string]string {
+	return map_DNSTemplateExtendedError
 }
 
 var map_DNSTransportConfig = map[string]string{
@@ -695,10 +713,20 @@ var map_ForwardPlugin = map[string]string{
 	"policy":           "policy is used to determine the order in which upstream servers are selected for querying. Any one of the following values may be specified:\n\n* \"Random\" picks a random upstream server for each query. * \"RoundRobin\" picks upstream servers in a round-robin order, moving to the next server for each new query. * \"Sequential\" tries querying upstream servers in a sequential order until one responds, starting with the first server for each new query.\n\nThe default value is \"Random\"",
 	"transportConfig":  "transportConfig is used to configure the transport type, server name, and optional custom CA or CA bundle to use when forwarding DNS requests to an upstream resolver.\n\nThe default value is \"\" (empty) which results in a standard cleartext connection being used when forwarding DNS requests to an upstream resolver.",
 	"protocolStrategy": "protocolStrategy specifies the protocol to use for upstream DNS requests. Valid values for protocolStrategy are \"TCP\" and omitted. When omitted, this means no opinion and the platform is left to choose a reasonable default, which is subject to change over time. The current default is to use the protocol of the original client request. \"TCP\" specifies that the platform should use TCP for all upstream DNS requests, even if the client request uses UDP. \"TCP\" is useful for UDP-specific issues such as those created by non-compliant upstream resolvers, but may consume more bandwidth or increase DNS response time. Note that protocolStrategy only affects the protocol of DNS requests that CoreDNS makes to upstream resolvers. It does not affect the protocol of DNS requests between clients and CoreDNS.",
+	"hostsPlugin":      "hostsPlugin allows configuring the CoreDNS \"hosts\" plugin",
+	"templatePlugin":   "templatePlugin allows configuring the CoreDNS \"template\" plugin",
 }
 
 func (ForwardPlugin) SwaggerDoc() map[string]string {
 	return map_ForwardPlugin
+}
+
+var map_HostsPlugin = map[string]string{
+	"": "HostsPlugin is hosts plugin",
+}
+
+func (HostsPlugin) SwaggerDoc() map[string]string {
+	return map_HostsPlugin
 }
 
 var map_Server = map[string]string{
@@ -710,6 +738,20 @@ var map_Server = map[string]string{
 
 func (Server) SwaggerDoc() map[string]string {
 	return map_Server
+}
+
+var map_TemplatePlugin = map[string]string{
+	"":              "TemplatePlugin is the template plugin",
+	"match":         "match is an optional Go regular expression that are matched against the incoming question name. Specifying no regex matches everything (equivalent of `.*`).",
+	"answer":        "answer is a Go template to generate a DNS record fragment as specified in RFC 1035. This will be the reply. Specifying no answer will result in a response with an empty answer section.",
+	"additional":    "additional is a Go template to generate a DNS record fragment as specified in RFC 1035. If provided, this will be the additional section of the reply.",
+	"authority":     "authority is a Go template to generate a DNS record fragment as specified in RFC 1035. If provided, this will be the authority section of the reply.",
+	"rcode":         "rcode is the response code (NXDOMAIN, SERVFAIL, ...) for the DNS reply. The default is NOERROR.",
+	"extendedError": "extendedError is an extended DNS error",
+}
+
+func (TemplatePlugin) SwaggerDoc() map[string]string {
+	return map_TemplatePlugin
 }
 
 var map_Upstream = map[string]string{

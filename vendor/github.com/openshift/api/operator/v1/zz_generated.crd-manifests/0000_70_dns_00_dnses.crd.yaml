@@ -88,6 +88,34 @@ spec:
                     pattern: ^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
                     type: string
                 type: object
+              hostsPlugin:
+                description: hostsPlugin allows configuring the CoreDNS "hosts" plugin
+                properties:
+                  hosts:
+                    items:
+                      description: DNSHostRecord is a static hosts entry
+                      properties:
+                        names:
+                          items:
+                            type: string
+                          type: array
+                        target:
+                          type: string
+                      required:
+                      - names
+                      - target
+                      type: object
+                    type: array
+                  hostsFile:
+                    default: ""
+                    enum:
+                    - SystemHostsFile
+                    - ""
+                    type: string
+                  recordTTL:
+                    pattern: ^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
+                    type: string
+                type: object
               logLevel:
                 default: Normal
                 description: |-
@@ -223,6 +251,35 @@ spec:
                         forwardPlugin defines a schema for configuring CoreDNS to proxy DNS messages
                         to upstream resolvers.
                       properties:
+                        hostsPlugin:
+                          description: hostsPlugin allows configuring the CoreDNS
+                            "hosts" plugin
+                          properties:
+                            hosts:
+                              items:
+                                description: DNSHostRecord is a static hosts entry
+                                properties:
+                                  names:
+                                    items:
+                                      type: string
+                                    type: array
+                                  target:
+                                    type: string
+                                required:
+                                - names
+                                - target
+                                type: object
+                              type: array
+                            hostsFile:
+                              default: ""
+                              enum:
+                              - SystemHostsFile
+                              - ""
+                              type: string
+                            recordTTL:
+                              pattern: ^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
+                              type: string
+                          type: object
                         policy:
                           default: Random
                           description: |-
@@ -259,6 +316,64 @@ spec:
                           - TCP
                           - ""
                           type: string
+                        templatePlugin:
+                          description: templatePlugin allows configuring the CoreDNS
+                            "template" plugin
+                          items:
+                            description: TemplatePlugin is the template plugin
+                            properties:
+                              additional:
+                                description: |-
+                                  additional is a Go template to generate a DNS record fragment as specified
+                                  in RFC 1035. If provided, this will be the additional section of the reply.
+                                type: string
+                              answer:
+                                description: |-
+                                  answer is a Go template to generate a DNS record fragment as specified in
+                                  RFC 1035. This will be the reply. Specifying no answer will result in a
+                                  response with an empty answer section.
+                                type: string
+                              authority:
+                                description: |-
+                                  authority is a Go template to generate a DNS record fragment as specified in
+                                  RFC 1035. If provided, this will be the authority section of the reply.
+                                type: string
+                              dnsClass:
+                                default: IN
+                                type: string
+                              dnsType:
+                                default: ANY
+                                type: string
+                              dnsZones:
+                                items:
+                                  type: string
+                                type: array
+                              extendedError:
+                                description: extendedError is an extended DNS error
+                                properties:
+                                  rcode:
+                                    type: string
+                                  reason:
+                                    type: string
+                                required:
+                                - rcode
+                                - reason
+                                type: object
+                              match:
+                                description: |-
+                                  match is an optional Go regular expression that are matched against the
+                                  incoming question name. Specifying no regex matches everything (equivalent of `.*`).
+                                type: string
+                              rcode:
+                                description: |-
+                                  rcode is the response code (NXDOMAIN, SERVFAIL, ...) for the DNS reply. The
+                                  default is NOERROR.
+                                type: string
+                            required:
+                            - dnsClass
+                            - dnsType
+                            type: object
+                          type: array
                         transportConfig:
                           description: |-
                             transportConfig is used to configure the transport type, server name, and optional custom CA or CA bundle to use
@@ -350,6 +465,64 @@ spec:
                       items:
                         type: string
                       type: array
+                  type: object
+                type: array
+              templatePlugin:
+                description: templatePlugin allows configuring the CoreDNS "template"
+                  plugin
+                items:
+                  description: TemplatePlugin is the template plugin
+                  properties:
+                    additional:
+                      description: |-
+                        additional is a Go template to generate a DNS record fragment as specified
+                        in RFC 1035. If provided, this will be the additional section of the reply.
+                      type: string
+                    answer:
+                      description: |-
+                        answer is a Go template to generate a DNS record fragment as specified in
+                        RFC 1035. This will be the reply. Specifying no answer will result in a
+                        response with an empty answer section.
+                      type: string
+                    authority:
+                      description: |-
+                        authority is a Go template to generate a DNS record fragment as specified in
+                        RFC 1035. If provided, this will be the authority section of the reply.
+                      type: string
+                    dnsClass:
+                      default: IN
+                      type: string
+                    dnsType:
+                      default: ANY
+                      type: string
+                    dnsZones:
+                      items:
+                        type: string
+                      type: array
+                    extendedError:
+                      description: extendedError is an extended DNS error
+                      properties:
+                        rcode:
+                          type: string
+                        reason:
+                          type: string
+                      required:
+                      - rcode
+                      - reason
+                      type: object
+                    match:
+                      description: |-
+                        match is an optional Go regular expression that are matched against the
+                        incoming question name. Specifying no regex matches everything (equivalent of `.*`).
+                      type: string
+                    rcode:
+                      description: |-
+                        rcode is the response code (NXDOMAIN, SERVFAIL, ...) for the DNS reply. The
+                        default is NOERROR.
+                      type: string
+                  required:
+                  - dnsClass
+                  - dnsType
                   type: object
                 type: array
               upstreamResolvers:

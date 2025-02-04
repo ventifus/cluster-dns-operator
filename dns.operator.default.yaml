@@ -1,0 +1,62 @@
+apiVersion: operator.openshift.io/v1
+kind: DNS
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"operator.openshift.io/v1","kind":"DNS","metadata":{"annotations":{},"creationTimestamp":"2025-02-04T18:58:27Z","finalizers":["dns.operator.openshift.io/dns-controller"],"generation":6,"name":"default","resourceVersion":"582210","uid":"d0c03b04-6ac1-41b8-8dde-0cdc95c0e3a4"},"spec":{"cache":{"negativeTTL":"0s","positiveTTL":"0s"},"hostsPlugin":{"hosts":[{"names":["api.m71z3hze.eastus.aroapp.io","api-int.m71z3hze.eastus.aroapp.io"],"target":"10.0.0.4"}],"hostsFile":"SystemHostsFile","recordTTL":"1h"},"logLevel":"Normal","nodePlacement":{},"operatorLogLevel":"Normal","servers":[{"forwardPlugin":{"policy":"Random","upstreams":["168.63.129.16"]},"name":"Red Hat","zones":["redhat.com","openshift.org"]}],"templatePlugin":[{"answer":"{{ .Name }} 60 IN A 52.168.90.194","dnsClass":"IN","dnsType":"A","dnsZones":["apps.frokms0g.eastus.aroapp.io"]},{"dnsClass":"ANY","dnsType":"ANY","dnsZones":["apps.frokms0g.eastus.aroapp.io"],"rcode":"NOANSWER"},{"dnsClass":"ANY","dnsType":"ANY","dnsZones":["internal.cloudapp.net"],"match":"^(?:[^.]+.){4,}internal.cloudapp.net.$","rcode":"NXDOMAIN"},{"dnsClass":"ANY","dnsType":"ANY","dnsZones":["reddog.microsoft.com"],"rcode":"NXDOMAIN"}],"upstreamResolvers":{"policy":"Sequential","protocolStrategy":"","transportConfig":{},"upstreams":[{"port":53,"type":"SystemResolvConf"}]}}}
+  creationTimestamp: "2025-02-04T18:58:27Z"
+  finalizers:
+  - dns.operator.openshift.io/dns-controller
+  generation: 7
+  name: default
+  resourceVersion: "585370"
+  uid: d0c03b04-6ac1-41b8-8dde-0cdc95c0e3a4
+spec:
+  cache:
+    negativeTTL: 0s
+    positiveTTL: 0s
+  logLevel: Normal
+  nodePlacement: {}
+  operatorLogLevel: Normal
+  servers:
+  - forwardPlugin:
+      policy: Random
+      upstreams:
+      - 168.63.129.16
+    name: Red Hat
+    zones:
+    - redhat.com
+    - openshift.org
+  upstreamResolvers:
+    policy: Sequential
+    protocolStrategy: ""
+    transportConfig: {}
+    upstreams:
+    - port: 53
+      type: SystemResolvConf
+  hostsPlugin:
+    recordTTL: 1h
+    hostsFile: SystemHostsFile
+    hosts:
+    - target: 10.0.0.4
+      names:
+      - api.m71z3hze.eastus.aroapp.io
+      - api-int.m71z3hze.eastus.aroapp.io
+  templatePlugin:
+    - dnsZones: ["apps.frokms0g.eastus.aroapp.io"]
+      dnsClass: IN
+      dnsType: A
+      answer: "{{ .Name }} 60 IN A 52.168.90.194"
+    - dnsZones: ["apps.frokms0g.eastus.aroapp.io"]
+      dnsClass: ANY
+      dnsType: ANY
+      rcode: NOERROR
+    - dnsZones: ["internal.cloudapp.net"]
+      dnsClass: ANY
+      dnsType: ANY
+      match: "^(?:[^.]+.){4,}internal.cloudapp.net.$"
+      rcode: NXDOMAIN
+    - dnsZones: ["reddog.microsoft.com"]
+      dnsClass: ANY
+      dnsType: ANY
+      rcode: NXDOMAIN

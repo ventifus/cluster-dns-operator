@@ -92,7 +92,7 @@ var corefileTemplate = template.Must(template.New("Corefile").Funcs(template.Fun
     prometheus 127.0.0.1:9153
     {{- with .HostsPlugin }}
     {{- if or (gt (len .HostsFile) 0) (gt (len .Hosts) 0) }}
-    hosts {{- if gt (len .HostsFile) 0 }}{{ .HostsFile }}{{ end }} {
+    hosts {{- if (eq .HostsFile "SystemHostsFile") }} /etc/hosts{{ end }} {
         {{- if gt $.HostsTTL 0 }}
         ttl {{ $.HostsTTL }}
         {{- end }}

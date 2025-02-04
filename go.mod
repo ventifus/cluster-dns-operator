@@ -89,3 +89,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/openshift/api v0.0.0-20240510053056-88a8afea030c => ../../../../api.worktree/pr/ventifus/custom-records/api/

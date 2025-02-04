@@ -117,8 +117,12 @@ type DNSSpec struct {
 	// +optional
 	Cache DNSCache `json:"cache,omitempty"`
 
+	// hostsPlugin allows configuring the CoreDNS "hosts" plugin
+	// +optional
 	HostsPlugin HostsPlugin `json:"hostsPlugin,omitempty"`
 
+	// templatePlugin allows configuring the CoreDNS "template" plugin
+	// +optional
 	TemplatePlugins []TemplatePlugin `json:"templatePlugin,omitempty"`
 }
 
@@ -316,8 +320,13 @@ type ForwardPlugin struct {
 	// +optional
 	ProtocolStrategy ProtocolStrategy `json:"protocolStrategy"`
 
-	HostsPlugin    HostsPlugin    `json:"hostsPlugin,omitempty"`
-	TemplatePlugin TemplatePlugin `json:"templatePlugin,omitempty"`
+	// hostsPlugin allows configuring the CoreDNS "hosts" plugin
+	// +optional
+	HostsPlugin HostsPlugin `json:"hostsPlugin,omitempty"`
+
+	// templatePlugin allows configuring the CoreDNS "template" plugin
+	// +optional
+	TemplatePlugins []TemplatePlugin `json:"templatePlugin,omitempty"`
 }
 
 // UpstreamResolvers defines a schema for configuring the CoreDNS forward plugin in the
@@ -536,12 +545,13 @@ type DNSList struct {
 	Items []DNS `json:"items"`
 }
 
-// +kubebuilder:validation:Enum=SystemHostsFilek;""
+// +kubebuilder:validation:Enum=SystemHostsFile;""
 type HostsFileType string
 
 const SystemHostsFileType HostsFileType = "SystemHostsFile"
 const NoHostsFileType = ""
 
+// HostsPlugin is hosts plugin
 type HostsPlugin struct {
 	// recordTTL defines the DNS TTL of the records generated (forward and
 	// reverse). If not specified, the CoreDNS default will be used, which
@@ -566,6 +576,7 @@ type HostsPlugin struct {
 	Hosts []DNSHostRecord `json:"hosts"`
 }
 
+// DNSHostRecord is a static hosts entry
 type DNSHostRecord struct {
 	// names is a list of one or more fully-qualified hostnames.
 
@@ -580,6 +591,7 @@ type DNSHostRecord struct {
 	Target string `json:"target"`
 }
 
+// TemplatePlugin is the template plugin
 type TemplatePlugin struct {
 	// dnsClass is the DNS query class, usually IN or ANY.
 
@@ -595,7 +607,7 @@ type TemplatePlugin struct {
 
 	// dnsZones is an optional list of DNS zone scopes for this template.
 
-	// +kubebuilder:default=[]
+	// +optional
 	DNSZones []string `json:"dnsZones"`
 
 	// match is an optional Go regular expression that are matched against the
@@ -623,6 +635,7 @@ type TemplatePlugin struct {
 	EdError DNSTemplateExtendedError `json:"extendedError,omitempty"`
 }
 
+// DNSTemplateExtendedError is ederror
 type DNSTemplateExtendedError struct {
 	// rcode is an extended DNS error code as defined in RFC 8914
 
