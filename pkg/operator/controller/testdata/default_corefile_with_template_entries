@@ -1,0 +1,34 @@
+.:5353 {
+    bufsize 1232
+    errors
+    log . {
+        class error
+    }
+    health {
+        lameduck 20s
+    }
+    ready
+    kubernetes cluster.local in-addr.arpa ip6.arpa {
+        pods insecure
+        fallthrough in-addr.arpa ip6.arpa
+    }
+    prometheus 127.0.0.1:9153
+    template IN A apps.cluster.local apps2.cluster.local {
+        answer "{{ .Name }}. 5 IN A 192.0.2.1"
+        additional "ns0.cluster.local. 5 IN A 192.0.2.100"
+        authority "apps.cluster.local. 5 IN NS ns0.cluster.local."
+        rcode NOERROR
+        ederror NOERROR "It works!"
+        fallthrough
+    }
+    forward . /etc/resolv.conf {
+        policy sequential
+    }
+    cache 900 {
+        denial 9984 30
+    }
+    reload
+}
+hostname.bind:5353 {
+    chaos
+}

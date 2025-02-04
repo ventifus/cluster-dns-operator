@@ -1,0 +1,64 @@
+# Red Hat
+redhat.com:5353 openshift.org:5353 {
+    prometheus 127.0.0.1:9153
+    forward . 168.63.129.16 {
+        policy round_robin
+    }
+    errors
+    log . {
+        class error
+    }
+    bufsize 1232
+    cache 900 {
+        denial 9984 30
+    }
+}
+.:5353 {
+    bufsize 1232
+    errors
+    log . {
+        class error
+    }
+    health {
+        lameduck 20s
+    }
+    ready
+    kubernetes cluster.local in-addr.arpa ip6.arpa {
+        pods insecure
+        fallthrough in-addr.arpa ip6.arpa
+    }
+    prometheus 127.0.0.1:9153
+    hosts {
+        ttl 3600
+        10.0.0.4 api.m71z3hze.eastus.aroapp.io api-int.m71z3hze.eastus.aroapp.io
+        10.0.0.5 agentimagestorewus01.blob.core.windows.net agentimagestorecus01.blob.core.windows.net agentimagestoreeus01.blob.core.windows.net agentimagestoreweu01.blob.core.windows.net agentimagestoreeas01.blob.core.windows.net eastus-shared.prod.warm.ingest.monitor.core.windows.net gcs.prod.monitoring.core.windows.net gsm1318942586eh.servicebus.windows.net gsm1318942586xt.blob.core.windows.net gsm1580628551eh.servicebus.windows.net gsm1580628551xt.blob.core.windows.net gsm479052001eh.servicebus.windows.net gsm479052001xt.blob.core.windows.net maupdateaccount.blob.core.windows.net maupdateaccount2.blob.core.windows.net maupdateaccount3.blob.core.windows.net maupdateaccount4.blob.core.windows.net production.diagnostics.monitoring.core.windows.net qos.prod.warm.ingest.monitor.core.windows.net login.microsoftonline.com management.azure.com arosvc.azurecr.io arosvc.eastus.data.azurecr.io imageregistryhypp0.blob.core.windows.net
+        fallthrough
+    }
+    template ANY ANY internal.cloudapp.net {
+        match "^(?:[^.]+\.){4,}internal\.cloudapp\.net\.$"
+        rcode NXDOMAIN
+        fallthrough
+    }
+    template IN A apps.m71z3hze.eastus.aroapp.io {
+        answer "{{ .Name }} 60 IN A 52.168.90.194"
+        fallthrough
+    }
+    template ANY ANY apps.m71z3hze.eastus.aroapp.io {
+        rcode NOANSWER
+        fallthrough
+    }
+    template ANY ANY reddog.microsoft.com {
+        rcode NXDOMAIN
+        fallthrough
+    }
+    forward . /etc/resolv.conf {
+        policy sequential
+    }
+    cache 900 {
+        denial 9984 30
+    }
+    reload
+}
+hostname.bind:5353 {
+    chaos
+}

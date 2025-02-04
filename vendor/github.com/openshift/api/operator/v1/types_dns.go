@@ -116,6 +116,10 @@ type DNSSpec struct {
 	// 30 seconds or as noted in the respective Corefile for your version of OpenShift.
 	// +optional
 	Cache DNSCache `json:"cache,omitempty"`
+
+	HostsPlugin HostsPlugin `json:"hostsPlugin,omitempty"`
+
+	TemplatePlugins []TemplatePlugin `json:"templatePlugin,omitempty"`
 }
 
 // DNSCache defines the fields for configuring DNS caching.
@@ -311,6 +315,9 @@ type ForwardPlugin struct {
 	//
 	// +optional
 	ProtocolStrategy ProtocolStrategy `json:"protocolStrategy"`
+
+	HostsPlugin    HostsPlugin    `json:"hostsPlugin,omitempty"`
+	TemplatePlugin TemplatePlugin `json:"templatePlugin,omitempty"`
 }
 
 // UpstreamResolvers defines a schema for configuring the CoreDNS forward plugin in the
@@ -527,4 +534,104 @@ type DNSList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 
 	Items []DNS `json:"items"`
+}
+
+// +kubebuilder:validation:Enum=SystemHostsFilek;""
+type HostsFileType string
+
+const SystemHostsFileType HostsFileType = "SystemHostsFile"
+const NoHostsFileType = ""
+
+type HostsPlugin struct {
+	// recordTTL defines the DNS TTL of the records generated (forward and
+	// reverse). If not specified, the CoreDNS default will be used, which
+	// is 3600 seconds (1 hour).
+
+	// +kubebuilder:validation:Pattern=^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
+	// +kubebuilder:validation:Type:=string
+	// +optional
+	RecordTTL metav1.Duration `json:"recordTTL,omitempty"`
+
+	// hostsFile optionally generates DNS records for every entry in the
+	// /etc/hosts file.
+
+	// +optional
+	// +kubebuilder:default=""
+	HostsFile HostsFileType `json:"hostsFile,omitempty"`
+
+	// hosts is a list of name to IP mappings that CoreDNS will answer queries with.
+
+	// +optional
+	// +kubebuilder:validation:Optional
+	Hosts []DNSHostRecord `json:"hosts"`
+}
+
+type DNSHostRecord struct {
+	// names is a list of one or more fully-qualified hostnames.
+
+	// +kubebuilder:validation:Required
+	// +required
+	Names []string `json:"names"`
+
+	// target is the IPv4 or IPv6 address for this record.
+
+	// +kubebuilder:validation:Required
+	// +required
+	Target string `json:"target"`
+}
+
+type TemplatePlugin struct {
+	// dnsClass is the DNS query class, usually IN or ANY.
+
+	// +kubebuilder:default="IN"
+	// +required
+	DNSClass string `json:"dnsClass"`
+
+	// dnsType is the query type (A, PTR, ... can be ANY to match all types).
+
+	// +kubebuilder:default="ANY"
+	// +required
+	DNSType string `json:"dnsType"`
+
+	// dnsZones is an optional list of DNS zone scopes for this template.
+
+	// +kubebuilder:default=[]
+	DNSZones []string `json:"dnsZones"`
+
+	// match is an optional Go regular expression that are matched against the
+	// incoming question name. Specifying no regex matches everything (equivalent of `.*`).
+	Match string `json:"match,omitempty"`
+
+	// answer is a Go template to generate a DNS record fragment as specified in
+	// RFC 1035. This will be the reply. Specifying no answer will result in a
+	// response with an empty answer section.
+	Answer string `json:"answer,omitempty"`
+
+	// additional is a Go template to generate a DNS record fragment as specified
+	// in RFC 1035. If provided, this will be the additional section of the reply.
+	Additional string `json:"additional,omitempty"`
+
+	// authority is a Go template to generate a DNS record fragment as specified in
+	// RFC 1035. If provided, this will be the authority section of the reply.
+	Authority string `json:"authority,omitempty"`
+
+	// rcode is the response code (NXDOMAIN, SERVFAIL, ...) for the DNS reply. The
+	// default is NOERROR.
+	RCode string `json:"rcode,omitempty"`
+
+	// extendedError is an extended DNS error
+	EdError DNSTemplateExtendedError `json:"extendedError,omitempty"`
+}
+
+type DNSTemplateExtendedError struct {
+	// rcode is an extended DNS error code as defined in RFC 8914
+
+	// +kubebuilder:validation:Required
+	// +required
+	RCode string `json:"rcode"`
+	// reason is an optional string explaining the reason for the error
+
+	// +kubebuilder:validation:Required
+	// +required
+	Reason string `json:"reason,omitempty"`
 }

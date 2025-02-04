@@ -220,6 +220,149 @@ func TestDesiredDNSConfigmap(t *testing.T) {
 			},
 			expectedCoreFile: mustLoadTestFile(t, "default_corefile_cache_with_fractional_values_configured"),
 		},
+		{
+			name: "Default Corefile with hosts entries",
+			dns: &operatorv1.DNS{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: DefaultDNSController,
+				},
+				Spec: operatorv1.DNSSpec{
+					HostsPlugin: operatorv1.HostsPlugin{
+						RecordTTL: metav1.Duration{Duration: 60 * time.Second},
+						Hosts: []operatorv1.DNSHostRecord{
+							{
+								Target: "10.0.0.100",
+								Names: []string{
+									"api.cluster.local",
+									"api-int.cluster.local",
+								},
+							},
+							{
+								Target: "10.0.0.200",
+								Names: []string{
+									"acr.local",
+									"logs.local",
+									"foo.local",
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedCoreFile: mustLoadTestFile(t, "default_corefile_with_hosts_entries"),
+		},
+		{
+			name: "Default Corefile with template entries",
+			dns: &operatorv1.DNS{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: DefaultDNSController,
+				},
+				Spec: operatorv1.DNSSpec{
+					TemplatePlugins: []operatorv1.TemplatePlugin{
+						{
+							DNSClass:   "IN",
+							DNSType:    "A",
+							DNSZones:   []string{"apps.cluster.local", "apps2.cluster.local"},
+							Answer:     "{{ .Name }}. 5 IN A 192.0.2.1",
+							Authority:  "apps.cluster.local. 5 IN NS ns0.cluster.local.",
+							Additional: "ns0.cluster.local. 5 IN A 192.0.2.100",
+							RCode:      "NOERROR",
+							EdError:    operatorv1.DNSTemplateExtendedError{RCode: "NOERROR", Reason: "It works!"},
+						},
+					},
+				},
+			},
+			expectedCoreFile: mustLoadTestFile(t, "default_corefile_with_template_entries"),
+		},
+		{
+			name: "ARO Corefile",
+			dns: &operatorv1.DNS{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: DefaultDNSController,
+				},
+				Spec: operatorv1.DNSSpec{
+					Servers: []operatorv1.Server{
+						{
+							Name:  "Red Hat",
+							Zones: []string{"redhat.com", "openshift.org"},
+							ForwardPlugin: operatorv1.ForwardPlugin{
+								Upstreams: []string{"168.63.129.16"},
+								Policy:    operatorv1.RoundRobinForwardingPolicy,
+							},
+						},
+					},
+					HostsPlugin: operatorv1.HostsPlugin{
+						RecordTTL: metav1.Duration{Duration: 1 * time.Hour},
+						Hosts: []operatorv1.DNSHostRecord{
+							{
+								Target: "10.0.0.4",
+								Names: []string{
+									"api.m71z3hze.eastus.aroapp.io",
+									"api-int.m71z3hze.eastus.aroapp.io",
+								},
+							},
+							{
+								Target: "10.0.0.5",
+								Names: []string{
+									"agentimagestorewus01.blob.core.windows.net",
+									"agentimagestorecus01.blob.core.windows.net",
+									"agentimagestoreeus01.blob.core.windows.net",
+									"agentimagestoreweu01.blob.core.windows.net",
+									"agentimagestoreeas01.blob.core.windows.net",
+									"eastus-shared.prod.warm.ingest.monitor.core.windows.net",
+									"gcs.prod.monitoring.core.windows.net",
+									"gsm1318942586eh.servicebus.windows.net",
+									"gsm1318942586xt.blob.core.windows.net",
+									"gsm1580628551eh.servicebus.windows.net",
+									"gsm1580628551xt.blob.core.windows.net",
+									"gsm479052001eh.servicebus.windows.net",
+									"gsm479052001xt.blob.core.windows.net",
+									"maupdateaccount.blob.core.windows.net",
+									"maupdateaccount2.blob.core.windows.net",
+									"maupdateaccount3.blob.core.windows.net",
+									"maupdateaccount4.blob.core.windows.net",
+									"production.diagnostics.monitoring.core.windows.net",
+									"qos.prod.warm.ingest.monitor.core.windows.net",
+									"login.microsoftonline.com",
+									"management.azure.com",
+									"arosvc.azurecr.io",
+									"arosvc.eastus.data.azurecr.io",
+									"imageregistryhypp0.blob.core.windows.net",
+								},
+							},
+						},
+					},
+					TemplatePlugins: []operatorv1.TemplatePlugin{
+						{
+							DNSClass: "ANY",
+							DNSType:  "ANY",
+							Match:    "^(?:[^.]+\\.){4,}internal\\.cloudapp\\.net\\.$",
+							DNSZones: []string{"internal.cloudapp.net"},
+							RCode:    "NXDOMAIN",
+						},
+						{
+							DNSClass: "IN",
+							DNSType:  "A",
+							DNSZones: []string{"apps.m71z3hze.eastus.aroapp.io"},
+							Answer:   "{{ .Name }} 60 IN A 52.168.90.194",
+						},
+						{
+							DNSClass: "ANY",
+							DNSType:  "ANY",
+							DNSZones: []string{"apps.m71z3hze.eastus.aroapp.io"},
+							RCode:    "NOANSWER",
+						},
+						{
+							DNSClass: "ANY",
+							DNSType:  "ANY",
+							DNSZones: []string{"reddog.microsoft.com"},
+							RCode:    "NXDOMAIN",
+						},
+					},
+				},
+			},
+			expectedCoreFile: mustLoadTestFile(t, "aro_corefile"),
+		},
 	}
 
 	clusterDomain := "cluster.local"

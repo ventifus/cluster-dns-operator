@@ -90,7 +90,47 @@ var corefileTemplate = template.Must(template.New("Corefile").Funcs(template.Fun
         fallthrough in-addr.arpa ip6.arpa
     }
     prometheus 127.0.0.1:9153
-    {{- with .UpstreamResolvers }}
+    {{- with .HostsPlugin }}
+    {{- if or (gt (len .HostsFile) 0) (gt (len .Hosts) 0) }}
+    hosts {{- if gt (len .HostsFile) 0 }}{{ .HostsFile }}{{ end }} {
+        {{- if gt $.HostsTTL 0 }}
+        ttl {{ $.HostsTTL }}
+        {{- end }}
+        {{- if gt (len .Hosts) 0 }}
+        {{- range .Hosts }}
+        {{ .Target }}{{ range .Names }} {{ . }}{{ end }}
+        {{- end }}
+        fallthrough
+    {{- end }}
+    }
+    {{- end }}
+    {{- end }}
+    {{- if gt (len .TemplatePlugins) 0 }}
+    {{- range .TemplatePlugins }}
+    template {{ .DNSClass }} {{ .DNSType }}{{ range .DNSZones }} {{ . }}{{ end }} {
+        {{- if gt (len .Match) 0 }}
+        match "{{ .Match }}"
+        {{- end }}
+        {{- if gt (len .Answer) 0 }}
+        answer "{{ .Answer }}"
+        {{- end }}
+        {{- if gt (len .Additional) 0 }}
+        additional "{{ .Additional }}"
+        {{- end }}
+        {{- if gt (len .Authority) 0 }}
+        authority "{{ .Authority }}"
+        {{- end }}
+        {{- if gt (len .RCode) 0 }}
+        rcode {{ .RCode }}
+        {{- end }}
+        {{- if gt (len .EdError.RCode) 0 }}
+        ederror {{ .EdError.RCode }} "{{ .EdError.Reason }}"
+        {{- end }}
+        fallthrough
+    }
+	{{- end }}
+	{{- end }}
+	{{- with .UpstreamResolvers }}
     forward .{{range .Upstreams}} {{if eq "TLS" $.UpstreamResolvers.TransportConfig.Transport}}tls://{{end}}{{UpstreamResolver .}}{{end}} {
         {{- with $tls := .TransportConfig.TLS }}
         {{- with $serverName := $tls.ServerName }}
@@ -204,6 +244,7 @@ func desiredDNSConfigMap(dns *operatorv1.DNS, clusterDomain string, caBundleRevi
 
 	// Calculate the caching values (in seconds) for use in the Corefile
 	pTTL, nTTL := coreDNSCache(dns)
+	hTTL := TTLDurationToInt(dns.Spec.HostsPlugin.RecordTTL)
 
 	corefileParameters := struct {
 		ClusterDomain             string
@@ -218,6 +259,9 @@ func desiredDNSConfigMap(dns *operatorv1.DNS, clusterDomain string, caBundleRevi
 		NegativeTTL               uint32
 		OCPDNSNameResolver        bool
 		DNSNameResolverNamespaces []string
+		HostsPlugin               operatorv1.HostsPlugin
+		HostsTTL                  uint32
+		TemplatePlugins           []operatorv1.TemplatePlugin
 	}{
 		ClusterDomain:             clusterDomain,
 		Servers:                   dns.Spec.Servers,
@@ -231,6 +275,9 @@ func desiredDNSConfigMap(dns *operatorv1.DNS, clusterDomain string, caBundleRevi
 		NegativeTTL:               nTTL,
 		OCPDNSNameResolver:        dnsNameResolverEnabled,
 		DNSNameResolverNamespaces: dnsNameResolverNamespaces,
+		HostsPlugin:               dns.Spec.HostsPlugin,
+		HostsTTL:                  hTTL,
+		TemplatePlugins:           dns.Spec.TemplatePlugins,
 	}
 	corefile := new(bytes.Buffer)
 	if err := corefileTemplate.Execute(corefile, corefileParameters); err != nil {
@@ -412,6 +459,14 @@ func coreDNSCache(dns *operatorv1.DNS) (positiveTTL, negativeTTL uint32) {
 	}
 
 	return positiveTTL, negativeTTL
+}
+
+func TTLDurationToInt(d metav1.Duration) uint32 {
+	ttl := uint32(d.Round(time.Second).Seconds())
+	if ttl < 0 {
+		ttl = 0
+	}
+	return ttl
 }
 
 func contains(upstreams []operatorv1.Upstream, upstream operatorv1.Upstream) bool {
